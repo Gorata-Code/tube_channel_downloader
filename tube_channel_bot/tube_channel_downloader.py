@@ -34,6 +34,7 @@ class TubeChannelDownloader(webdriver.Chrome):
         self.get(const.BASE_URL + f'/results?search_query={channel_name}')
 
     def switch_to_video_tab(self, channel_name: str) -> None:
+        name_found = []
         try:
             channels = self.find_elements(By.ID, 'channel-name')
             for channel in channels:
@@ -50,12 +51,13 @@ class TubeChannelDownloader(webdriver.Chrome):
                           'happening\nwhile it is actually still loading. Please beware.')
                     video_tab = self.find_element(By.XPATH, '//*[@id="tabsContent"]/tp-yt-paper-tab[2]/div')
                     video_tab.click()
+                    name_found.append(channel)
                     input('\nAfter your browser has switched to the "VIDEOS" tab and the video thumbnails on\nthe '
                           'first '
                           'row are showing,\nPress Enter to continue: ')
                     break
                 elif channel.find_element(By.ID, 'text').find_element(By.TAG_NAME, 'a').get_attribute('innerHTML'). \
-                        casefold() != f'{channel_name.casefold()}':
+                        casefold() != f'{channel_name.casefold()}' and channels.index(channel) == -1:
                     print(
                         f'\n\t\tSorry, we could not find any channel with the name "{channel_name}".\n\t\tPlease '
                         f'check your spelling and try again.')
@@ -65,6 +67,11 @@ class TubeChannelDownloader(webdriver.Chrome):
             if 'no such element' in str(exp1):
                 print('\nNo such channel exists. Please try a different channel name.')
                 input('\nPress Enter to quit: ')
+            sys.exit()
+
+        if len(name_found) < 1:
+            print('\nNo matching channel name found. Please try a different one.\n')
+            input('Press Enter to quit: \n')
             sys.exit()
 
     def load_entire_page(self) -> None:
@@ -92,7 +99,7 @@ class TubeChannelDownloader(webdriver.Chrome):
             print('\n\tGoing to y2mate to download your files...\n')
 
             self.get(const.Y2M8is_URL)
-            input('After the y2mate page has finished loading, press Enter to continue: ')
+            input('After the y2mate page has finished loading, press Enter to continue: \n')
 
             video_log = 0
 
