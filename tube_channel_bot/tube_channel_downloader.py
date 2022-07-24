@@ -34,22 +34,22 @@ class TubeChannelDownloader(webdriver.Chrome):
         self.get(const.BASE_URL + f'/results?search_query={channel_name}')
 
     def switch_to_video_tab(self, channel_name: str) -> None:
-        name_found = []
+        name_found: [WebElement] = []
         try:
-            channels = self.find_elements(By.ID, 'channel-name')
+            channels: [WebElement] = self.find_elements(By.ID, 'channel-name')
             for channel in channels:
                 if channel.find_element(By.ID, 'text').find_element(By.TAG_NAME, 'a').get_attribute("innerHTML"). \
                         casefold() == f'{channel_name.casefold()}':
                     print(f'''\nWe have found your channel: "{channel.find_element(By.ID, "text").
                           find_element(By.TAG_NAME, "a").get_attribute("innerHTML")}"!''')
-                    channel_link = channel.find_element(By.ID, 'text').find_element(By.TAG_NAME, 'a').get_attribute(
-                        'href')
+                    channel_link: str = channel.find_element(By.ID, 'text').find_element(By.TAG_NAME, 'a')\
+                        .get_attribute('href')
 
                     self.get(channel_link)
                     print('\n\tSwitching to the "VIDEOS" tab. Please wait...\n')
                     print('Chrome browser tends to be slow at times, sometimes it appears as if nothing is '
                           'happening\nwhile it is actually still loading. Please beware.')
-                    video_tab = self.find_element(By.XPATH, '//*[@id="tabsContent"]/tp-yt-paper-tab[2]/div')
+                    video_tab: WebElement = self.find_element(By.XPATH, '//*[@id="tabsContent"]/tp-yt-paper-tab[2]/div')
                     video_tab.click()
                     name_found.append(channel)
                     input('\nAfter your browser has switched to the "VIDEOS" tab and the video thumbnails on\nthe '
@@ -92,7 +92,7 @@ class TubeChannelDownloader(webdriver.Chrome):
 
     def download_the_files(self, channel_name: str) -> None:
 
-        urls_collected = self.collect_the_urls(channel_name)
+        urls_collected: [str] = self.collect_the_urls(channel_name)
 
         if len(urls_collected) > 0:
             print(f'\t\t** TOTAL FILES TO BE DOWNLOADED: {len(urls_collected)} Video Files **')
@@ -101,21 +101,22 @@ class TubeChannelDownloader(webdriver.Chrome):
             self.get(const.Y2M8is_URL)
             input('After the y2mate page has finished loading, press Enter to continue: \n')
 
-            video_log = 0
+            video_log: int = 0
 
             for url in urls_collected:
                 video_log += 1
-                search_box = self.find_element(By.ID, 'txtUrl')
+                search_box: WebElement = self.find_element(By.ID, 'txtUrl')
                 search_box.click()
                 search_box.clear()
                 search_box.send_keys(url)
                 search_box.send_keys(Keys.ENTER)
-                convert_button = self.find_element(By.XPATH, '/html/body/section[1]/div/div[2]/div['
-                                                             '2]/div/div[2]/div/div[2]/table/tbody/tr[2]/td['
-                                                             '3]/button')
+                convert_button: WebElement = self.find_element(By.XPATH, '/html/body/section[1]/div/div[2]/div['
+                                                                         '2]/div/div[2]/div/div[2]/table/tbody/tr['
+                                                                         '2]/td[3]/button')
                 convert_button.click()
-                download_button = self.find_element(By.XPATH, '/html/body/section[1]/div/div[2]/div[2]/div/div['
-                                                              '2]/div/div[2]/table/tbody/tr[2]/td[3]/button/a')
+                download_button: WebElement = self.find_element(By.XPATH, '/html/body/section[1]/div/div[2]/div['
+                                                                          '2]/div/div[2]/div/div[2]/table/tbody/tr['
+                                                                          '2]/td[3]/button/a')
                 download_button.click()
                 print(f'--> Video {video_log} of {len(urls_collected)} Downloaded.')
                 self.page_detour_killer()
@@ -128,29 +129,28 @@ class TubeChannelDownloader(webdriver.Chrome):
 
     def collect_the_urls(self, channel_name) -> [str]:
 
-        available_files = files_already_downloaded()
-        the_channel_files = self.get_all_channel_files(channel_name)
+        available_files: [str] = files_already_downloaded()
+        the_channel_files: [WebElement] = self.get_all_channel_files(channel_name)
 
         print('\n\tDownloading all the videos you don\'t already have from this channel...')
 
         print(f'\n\t\t\t** NAMES & URLs OF THE VIDEOS TO BE DOWNLOADED **\n')
 
-        url_list = []
-        video_count = 0
+        url_list: [str] = []
+        video_count: int = 0
 
         for video in the_channel_files:
 
             # When you are a noob who can't even figure-out Regex and or OOPs :(
             # But it works though, right? ;) No such thing as clean-code :)
 
-            video_title = video.text.replace('?', '').replace('|', '').replace('\\', '').replace(':', '').replace('>',
-                                                                                                                  ''). \
-                replace('<', '').replace('*', '').replace('"', '').replace('/', '')
+            video_title: str = video.text.replace('?', '').replace('|', '').replace('\\', '').replace(':', '')\
+                                .replace('>', '').replace('<', '').replace('*', '').replace('"', '').replace('/', '')
 
             if video_title not in available_files:
                 video_count += 1
                 print(f'VIDEO {video_count}: ' + video_title)
-                video_url = video.get_attribute('href')
+                video_url: str = video.get_attribute('href')
                 url_list.append(video_url)
                 print(f'\n\tURL LINK --> {video_url}\n')
 
@@ -160,15 +160,15 @@ class TubeChannelDownloader(webdriver.Chrome):
         return url_list
 
     def get_all_channel_files(self, channel_name: str) -> [WebElement]:
-        video_list = self.find_elements(By.TAG_NAME, 'ytd-grid-video-renderer')
-        video_num = 0
-        channel_files = []
+        video_list: [WebElement] = self.find_elements(By.TAG_NAME, 'ytd-grid-video-renderer')
+        video_num: int = 0
+        channel_files: [WebElement] = []
 
         print(f'\n\t\t** ALL THE VIDEOS ON THE CHANNEL "{channel_name}" **\n')
 
         for video in video_list:
             video_num += 1
-            video_title = video.find_element(By.ID, 'video-title')
+            video_title: WebElement = video.find_element(By.ID, 'video-title')
             print(f'VIDEO NO. {video_num}: {video_title.text}')
             channel_files.append(video_title)
         print(f'\n\t\t** TOTAL NUMBER OF VIDEOS: {len(channel_files)} Videos! **')
@@ -184,12 +184,12 @@ class TubeChannelDownloader(webdriver.Chrome):
 
 
 def files_already_downloaded() -> [str]:
-    current_working_directory = os.listdir()
+    current_working_directory: [str] = os.listdir()
 
-    target_files = []
+    target_files: [str] = []
 
     for file in current_working_directory:
-        file_name = os.path.splitext(file)
+        file_name: [str, str] = os.path.splitext(file)
         target_files.append(file_name[0])
 
     return target_files
