@@ -1,14 +1,19 @@
 import sys
+from win32com.client import Dispatch
 from selenium.common.exceptions import WebDriverException
 from tube_channel_bot.tube_channel_downloader import TubeChannelDownloader
 
 
 def script_summary() -> None:
     print('''
-        \t\tDUMELANG means GREETINGS! ~ G-CODE\n
-        \t"TUBE-CHANNEL-DOWNLOADER" Version 1.0.0\n
+              ***----------------------------------------------------------------------------------------***
+         \t***------------------------ DUMELANG means GREETINGS! ~ G-CODE -----------------------***
+                   \t***------------------------------------------------------------------------***\n
+        
+        \t\t"TUBE-CHANNEL-DOWNLOADER" Version 1.1.0\n
+        
         This Program will help you download videos from a YouTube channel of your choosing.\n
-        No need for installation. Just put this "tube_channel_downloader.exe" file in the\n
+        No need for installation. Just put this "Tube Channel Downloader.exe" file in the\n
         folder you want to download the files to and then double-click it to run. If you\n
         already have one or more videos from the channel you would like to download from,\n
         you should put this file in the same folder as those files so you do not download\n
@@ -30,25 +35,37 @@ def the_tube_tuber(channel_name: str) -> None:
 
     except Exception as exp:
 
-        if 'in PATH' in str(exp):
+        if 'executable needs to be in PATH' in str(exp):
+            print('''
+                Please make sure you have not deleted or moved or renamed the "chromedriver.exe"
 
-            print(''''
+                file that is next to the "Tube Channel Downloader.exe". The programme needs it
 
-                    Please make sure you have not deleted or moved or renamed the "chromedriver.exe"
-                    
-                    file that is next to the "tube_channel_downloader.exe". The programme needs it 
-                    
-                    to work.
-                    
-                    If you still get this error, then you need to download the chromedriver for your 
-
-                    version of Chrome. There are many videos on YouTube about how to get that set up.
-                    
-                    Once you are done downloading it, you unzip it and then replace the current one.
-
-                    ''')
+                to work.
+            
+                ''')
 
             input('\nPress Enter To Exit.\n')
+            sys.exit(1)
+
+        elif 'version of ChromeDriver only supports Chrome version' in str(exp):
+            message: str = str(exp).split('\n')[0].split(':')[-1]
+            print(f'''
+               {message}.
+                
+                You need to download the ChromeDriver version compatible with your version of Chrome.
+                
+                Please refer to the information about GOOGLE CHROME & CHROME_DRIVER above. 
+                
+                Once you are done downloading the ChromeDriver, you unzip it and then 
+                
+                replace the current one by placing the new one in the same folder as
+                
+                this "Tube Channel Downloader.exe".
+
+            ''')
+            input('\nPress Enter To Exit.\n')
+            sys.exit(1)
 
         elif 'INTERNET' in str(exp):
 
@@ -61,28 +78,17 @@ def the_tube_tuber(channel_name: str) -> None:
                     ''')
 
             input('\nPress Enter To Exit.\n')
+            sys.exit(1)
 
         elif WebDriverException:
 
             if 'version' in str(exp):
 
-                print('\nPlease make sure your version of Google Chrome is at least version 97.\n'
+                print('\nPlease make sure your version of Google Chrome is at least version 103.\n'
 
                       'Open your Chrome browser and go to "Menu -> Help -> About Google Chrome"\n'
 
-                      'to update your web browser.\n'
-
-                      'If you get this error message after updating your Google Chrome, then you\n'
-
-                      'will need to download an updated version of chromedriver.\n'
-
-                      'Visit https://chromedriver.chromium.org/downloads and download the chromedriver\n'
-
-                      'that matches your version of Google Chrome. Once downloaded, unzip the download\n'
-
-                      'and copy the file named chromedriver.exe & paste it in the same place as\n'
-
-                      'this tube_channel_downloader.exe. Then you will be good to go!')
+                      'to update your web browser.\n')
 
             else:
                 print('\nSomething went wrong, please make sure you do not disturb the Google Chrome window\n'
@@ -90,11 +96,43 @@ def the_tube_tuber(channel_name: str) -> None:
                       'while it works when you try again.')
 
             input('\nPress Enter To Exit & try again.\n')
+            sys.exit(1)
+
+        elif 'Timed out receiving message from renderer' or 'cannot determine loading status' in str(exp):
+            print('Google Chrome is taking too long to respond :( .')
+
+        elif 'ERR_NAME_NOT_RESOLVED' or 'ERR_CONNECTION_CLOSED' or 'unexpected command response' in str(exp):
+            print('Your internet connection may have been interrupted.')
+            print('Please make sure you\'re still connected to the internet and try again.')
+
+        else:
+            print('\nSomething went wrong, please make sure you do not disturb the Google Chrome window\n'
+                  'while it works when you try again.')
+
+        input('\nPress Enter to Exit & Try Again.')
+        sys.exit(1)
+
+
+def detect_browser_version(filename):
+    parser = Dispatch("Scripting.FileSystemObject")
+    try:
+        version = parser.GetFileVersion(filename)
+    except Exception:
+        return None
+    return version
+
+
+if __name__ == "__main__":
+    script_summary()
+    absolute_paths = [r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                      r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"]
+    users_browser_version = list(filter(None, [detect_browser_version(p) for p in absolute_paths]))[0]
+    print('YOUR GOOGLE CHROME VERSION: ' + users_browser_version)
+    print(f'IF YOU NEED TO DOWNLOAD THE CHROME_DRIVER: https://chromedriver.chromium.org/downloads\n')
 
 
 def main() -> None:
-    script_summary()
-    channel_name = input('Enter Channel Name: ').strip()
+    channel_name: str = input('Type a Channel Name & Press Enter: ').strip()
     if len(channel_name) > 0:
         the_tube_tuber(channel_name)
     else:
